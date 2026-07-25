@@ -5,6 +5,7 @@ import '../services/nepali_date.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'history_screen.dart';
@@ -14,6 +15,8 @@ import 'land_screen.dart';
 import 'currency_screen.dart';
 import 'report_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 class WidgetSettingsScreen extends StatefulWidget {
@@ -132,97 +135,99 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen>
     return Scaffold(
       backgroundColor: context.cBg,
       floatingActionButton: CivilCalcFab(languageCode: _languageCode),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: Column(children: [
-            _buildHeader(),
-            if (_loading)
-              const Expanded(child: Center(
-                child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2)))
-            else
-              Expanded(
-                child: ListView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    // ── Preview card ──────────────────────────────────────
-                    _sectionLabel(_isNepali ? 'आजको मिति पूर्वावलोकन' : 'Today\'s Date Preview'),
-                    const SizedBox(height: 12),
-                    _previewCard(today, wd),
-                    const SizedBox(height: 28),
-
-                    // ── Notification section ──────────────────────────────
-                    _sectionLabel(_isNepali ? 'सूचना पट्टी (Notification Bar)' : 'Notification Bar'),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isNepali
-                          ? 'नोटिफिकेसन बारमा आजको नेपाली मिति सधैँ देखाउनुहोस्'
-                          : 'Always show today\'s Nepali date in the notification bar',
-                      style: TextStyle(color: context.cText4, fontSize: 13),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: Column(
+              children: [
+                _buildHeader(),
+                if (_loading)
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2),
                     ),
-                    const SizedBox(height: 12),
-                    ProCard(
-                      padding: EdgeInsets.zero,
-                      child: Column(children: [
-                        _switchRow(
-                          icon: Icons.notifications_active_rounded,
-                          color: AppColors.blue,
-                          title: _isNepali ? 'सूचना सक्रिय गर्नुहोस्' : 'Enable Notification',
-                          subtitle: _isNepali
-                              ? 'नोटिफिकेसन बारमा मिति देखाउनुहोस्'
-                              : 'Show date in notification bar',
-                          value: _notifEnabled,
-                          onChanged: _toggleNotification,
+                  )
+                else
+                  Expanded(
+                    child: ListView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.all(20),
+                      children: [
+                        _sectionLabel(_isNepali ? 'आजको मिति पूर्वावलोकन' : 'Today\'s Date Preview'),
+                        const SizedBox(height: 12),
+                        _previewCard(today, wd),
+                        const SizedBox(height: 28),
+                        _sectionLabel(_isNepali ? 'सूचना पट्टी (Notification Bar)' : 'Notification Bar'),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isNepali
+                              ? 'नोटिफिकेसन बारमा आजको नेपाली मिति सधैँ देखाउनुहोस्'
+                              : 'Always show today\'s Nepali date in the notification bar',
+                          style: TextStyle(color: context.cText4, fontSize: 13),
                         ),
-                        if (_notifEnabled) ...[
-                          Divider(color: context.cBorder, height: 1, indent: 16, endIndent: 16),
-                          _langRow(
-                            icon: Icons.translate_rounded,
-                            color: AppColors.indigo,
-                            title: _isNepali ? 'सूचनाको भाषा' : 'Notification Language',
-                            isNepali: _notifNepali,
-                            onChanged: _setNotifLang,
+                        const SizedBox(height: 12),
+                        ProCard(
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            children: [
+                              _switchRow(
+                                icon: Icons.notifications_active_rounded,
+                                color: AppColors.blue,
+                                title: _isNepali ? 'सूचना सक्रिय गर्नुहोस्' : 'Enable Notification',
+                                subtitle: _isNepali
+                                    ? 'नोटिफिकेसन बारमा मिति देखाउनुहोस्'
+                                    : 'Show date in notification bar',
+                                value: _notifEnabled,
+                                onChanged: _toggleNotification,
+                              ),
+                              if (_notifEnabled) ...[
+                                Divider(color: context.cBorder, height: 1, indent: 16, endIndent: 16),
+                                _langRow(
+                                  icon: Icons.translate_rounded,
+                                  color: AppColors.indigo,
+                                  title: _isNepali ? 'सूचनाको भाषा' : 'Notification Language',
+                                  isNepali: _notifNepali,
+                                  onChanged: _setNotifLang,
+                                ),
+                              ],
+                            ],
                           ),
-                        ],
-                      ]),
+                        ),
+                        const SizedBox(height: 28),
+                        _sectionLabel(_isNepali ? 'होम स्क्रिन विजेट' : 'Home Screen Widget'),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isNepali
+                              ? 'होम स्क्रिनमा विजेट थप्न: होम स्क्रिन → लामो थिच्नुहोस् → Widgets → चक्रिय ब्याज'
+                              : 'To add widget: Home screen → Long press → Widgets → Chakriya Byaj',
+                          style: TextStyle(color: context.cText4, fontSize: 13),
+                        ),
+                        const SizedBox(height: 12),
+                        ProCard(
+                          padding: EdgeInsets.zero,
+                          child: _langRow(
+                            icon: Icons.translate_rounded,
+                            color: AppColors.cyan,
+                            title: _isNepali ? 'विजेट भाषा' : 'Widget Language',
+                            isNepali: _widgetNepali,
+                            onChanged: _setWidgetLang,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _widgetPreview(today, wd),
+                        const SizedBox(height: 28),
+                        _howToCard(),
+                        const SizedBox(height: 24),
+                      ],
                     ),
-
-                    const SizedBox(height: 28),
-
-                    // ── Home widget section ───────────────────────────────
-                    _sectionLabel(_isNepali ? 'होम स्क्रिन विजेट' : 'Home Screen Widget'),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isNepali
-                          ? 'होम स्क्रिनमा विजेट थप्न: होम स्क्रिन → लामो थिच्नुहोस् → Widgets → चक्रिय ब्याज'
-                          : 'To add widget: Home screen → Long press → Widgets → Chakriya Byaj',
-                      style: TextStyle(color: context.cText4, fontSize: 13),
-                    ),
-                    const SizedBox(height: 12),
-                    ProCard(
-                      padding: EdgeInsets.zero,
-                      child: _langRow(
-                        icon: Icons.translate_rounded,
-                        color: AppColors.cyan,
-                        title: _isNepali ? 'विजेट भाषा' : 'Widget Language',
-                        isNepali: _widgetNepali,
-                        onChanged: _setWidgetLang,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Widget preview mockup
-                    _widgetPreview(today, wd),
-
-                    const SizedBox(height: 28),
-
-                    // ── How to add widget guide ───────────────────────────
-                    _howToCard(),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-          ]),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -266,55 +271,25 @@ class _WidgetSettingsScreenState extends State<WidgetSettingsScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
       case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
+      case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          // First pop the features sheet, then pop back to main, then push the new screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // widgets = already here
-      },
+      activeScreen: HeroScreen.widget,
+      onNavigate: _handleQuickNav,
     );
   }
 

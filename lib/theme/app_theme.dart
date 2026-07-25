@@ -62,6 +62,18 @@ class AppTheme {
     colors: [Color(0xFF1340C0), Color(0xFF3B0FA0)],  // dark blue → violet
   );
 
+  static const LinearGradient pageGradientLight = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF8FAFF), Color(0xFFF0F4FF)],
+  );
+
+  static const LinearGradient pageGradientDark = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0C1224), Color(0xFF131C34)],
+  );
+
   static const LinearGradient greenGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -107,16 +119,16 @@ class AppTheme {
 
   static List<BoxShadow> cardShadow = [
     BoxShadow(
-      color: const Color(0xFF1B4FE4).withValues(alpha: 0.07),
-      blurRadius: 20,
+      color: const Color(0xFF1B4FE4).withValues(alpha: 0.08),
+      blurRadius: 24,
       spreadRadius: 0,
-      offset: const Offset(0, 4),
+      offset: const Offset(0, 6),
     ),
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.04),
-      blurRadius: 8,
+      color: Colors.black.withValues(alpha: 0.05),
+      blurRadius: 10,
       spreadRadius: 0,
-      offset: const Offset(0, 2),
+      offset: const Offset(0, 3),
     ),
   ];
 
@@ -124,6 +136,37 @@ class AppTheme {
     BoxShadow(
       color: Colors.black.withValues(alpha: 0.35),
       blurRadius: 20,
+      spreadRadius: 0,
+      offset: const Offset(0, 6),
+    ),
+  ];
+
+  // ── Glass morphism shadows ──────────────────────
+  static List<BoxShadow> glassShadow = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.08),
+      blurRadius: 24,
+      spreadRadius: 0,
+      offset: const Offset(0, 8),
+    ),
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.04),
+      blurRadius: 12,
+      spreadRadius: 0,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> glassShadowDark = [
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.40),
+      blurRadius: 28,
+      spreadRadius: 0,
+      offset: const Offset(0, 12),
+    ),
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.15),
+      blurRadius: 16,
       spreadRadius: 0,
       offset: const Offset(0, 6),
     ),

@@ -85,22 +85,20 @@ class _LiveNepaliDateWidgetState extends State<LiveNepaliDateWidget> {
     final adYear  = widget.isNepali ? NepaliDate.toNepaliNum(ad.year) : ad.year.toString();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Line 1: BS date — अ ब स २०८२ बि.सं.
       Text(
         '$dayNum $monthName $yearNum ${widget.isNepali ? "बि.सं." : "BS"}',
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 15,
+          fontSize: 14,
           fontWeight: FontWeight.w700,
         ),
       ),
       const SizedBox(height: 2),
-      // Line 2: AD date + weekday — १२ जुलाई २०२४, शुक्रबार
       Text(
         '$adDay $adMonth $adYear, $dayName',
         style: TextStyle(
           color: Colors.white.withValues(alpha: 0.7),
-          fontSize: 11.5,
+          fontSize: 11,
           fontWeight: FontWeight.w500,
         ),
       ),

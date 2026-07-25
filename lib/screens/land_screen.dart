@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'history_screen.dart';
@@ -13,6 +14,8 @@ import 'currency_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 // ── Exact conversion constants (source: lalpurjanepal.com.np) ──
@@ -408,43 +411,11 @@ class _LandScreenState extends State<LandScreen>
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          // First pop the features sheet, then pop back to main, then push the new screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // Icons.terrain_rounded = already here, do nothing
-      },
+      activeScreen: HeroScreen.land,
+      onNavigate: _handleQuickNav,
     );
   }
 
@@ -460,13 +431,14 @@ class _LandScreenState extends State<LandScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }

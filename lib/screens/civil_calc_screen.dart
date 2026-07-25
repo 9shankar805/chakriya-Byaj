@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import 'history_screen.dart';
 import 'simple_interest_screen.dart';
@@ -11,6 +12,8 @@ import 'land_screen.dart';
 import 'currency_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 
 class CivilCalcScreen extends StatefulWidget {
   final String languageCode;
@@ -125,12 +128,24 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
       final res = _evaluate();
       if (res != null) {
         final expr = _display;
-        _result = _formatResult(res);
+        _Unit lastUnit = _Unit.none;
+        for (int i = _tokens.length - 1; i >= 0; i--) {
+          if (!_tokens[i].isOp && _tokens[i].unit != _Unit.none) {
+            lastUnit = _tokens[i].unit;
+            break;
+          }
+        }
+        if (lastUnit != _Unit.none) {
+          final suffix = _unitSuffix(lastUnit);
+          _result = '${_fmt(res)} $suffix'.trim();
+        } else {
+          _result = _fmt(res);
+        }
         _history.insert(0, '$expr\n= $_result');
         if (_history.length > 50) _history.removeLast();
         _tokens.clear();
         _currentNum = '';
-        _display = _result.split('\n').first;
+        _display = _result;
         _newEntry = true;
       }
     });
@@ -182,6 +197,23 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
 
   double? _evaluate() {
     if (_tokens.isEmpty) return null;
+    bool hasUnits = _tokens.any((t) => !t.isOp && t.unit != _Unit.none);
+    if (!hasUnits) {
+      double acc = 0; String op = '+';
+      for (final t in _tokens) {
+        if (t.isOp) { op = t.op!; }
+        else {
+          final v = t.value;
+          switch (op) {
+            case '+': acc += v; break;
+            case '-': acc -= v; break;
+            case '×': acc *= v; break;
+            case '÷': if (v != 0) acc /= v; break;
+          }
+        }
+      }
+      return acc;
+    }
     double acc = 0; String op = '+';
     for (final t in _tokens) {
       if (t.isOp) { op = t.op!; }
@@ -227,33 +259,6 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
     return v.toStringAsFixed(4).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
-  String _formatResult(double mm) {
-    switch (_tab) {
-      case 0: return _fmtLen(mm);
-      case 1: return _fmtArea(mm);
-      case 2: return _fmtVol(mm);
-    }
-    return _fmt(mm);
-  }
-
-  String _fmtLen(double mm) {
-    final m = mm / _mmPerMeter;
-    final ft = mm / _mmPerFoot;
-    final fWhole = (mm / _mmPerFoot).floor();
-    final remIn = (mm - fWhole * _mmPerFoot) / _mmPerInch;
-    final inch = mm / _mmPerInch;
-    return '${_fmt(mm)} mm\n${_fmt(m)} M  •  ${_fmt(ft)} ft  •  ${fWhole}\'${remIn.toStringAsFixed(2)}"  •  ${_fmt(inch)} in';
-  }
-
-  String _fmtArea(double mm2) {
-    return '${_fmt(mm2)} mm²\n${_fmt(mm2 / 1e6)} m²  •  ${_fmt(mm2 / (_mmPerFoot * _mmPerFoot))} ft²  •  ${_fmt(mm2 / (_mmPerInch * _mmPerInch))} in²';
-  }
-
-  String _fmtVol(double mm3) {
-    final cuft = mm3 / (_mmPerFoot * _mmPerFoot * _mmPerFoot);
-    return '${_fmt(mm3 / 1e9)} m³  •  ${_fmt(cuft)} ft³\n${_fmt(mm3 / 1e6)} L  •  ${_fmt(cuft / 100)} brass';
-  }
-
   // ── Conversion strip ──────────────────────────────────────────────────────
   List<_ConvItem> get _convItems {
     switch (_tab) {
@@ -281,55 +286,83 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
     }
   }
 
-  void _convLast(_Unit to) {
-    _commit();
-    for (int i = _tokens.length - 1; i >= 0; i--) {
-      if (!_tokens[i].isOp) {
-        final mm = _toMm(_tokens[i].value, _tokens[i].unit);
-        setState(() { _tokens[i] = _Token(_fromMm(mm, to), to); _display = _buildExpr(); });
-        return;
+  double _extractValue() {
+    if (_tokens.isNotEmpty) {
+      for (int i = _tokens.length - 1; i >= 0; i--) {
+        if (!_tokens[i].isOp) {
+          return _tokens[i].unit != _Unit.none
+              ? _toMm(_tokens[i].value, _tokens[i].unit)
+              : _tokens[i].value;
+        }
       }
     }
+    if (_currentNum.isNotEmpty) {
+      return double.tryParse(_currentNum.replaceAll(',', '')) ?? 0.0;
+    }
+    final targetStr = _result.isNotEmpty ? _result : _display;
+    final clean = targetStr.replaceAll(RegExp(r'[^0-9.-]'), '');
+    return double.tryParse(clean) ?? 0.0;
+  }
+
+  void _convLast(_Unit to) {
+    _commit();
+    final val = _extractValue();
+    final converted = _fromMm(val, to);
+    final suffix = _unitSuffix(to);
+    setState(() {
+      _tokens.clear();
+      _tokens.add(_Token(converted, to));
+      _currentNum = '';
+      _result = '${_fmt(converted)}${suffix.isNotEmpty ? " $suffix" : ""}';
+      _display = _result;
+      _newEntry = true;
+    });
   }
 
   void _convA(String t) {
     _commit();
-    for (int i = _tokens.length - 1; i >= 0; i--) {
-      if (!_tokens[i].isOp) {
-        final v = _tokens[i].value;
-        double r;
-        switch (t) {
-          case 'ft2m2':  r = v / 10.7639;  break;
-          case 'm2ft2':  r = v * 10.7639;  break;
-          case 'in2ft2': r = v / 144;      break;
-          case 'ft2in2': r = v * 144;      break;
-          case 'm2cm2':  r = v * 10000;    break;
-          default:       r = v;
-        }
-        setState(() { _tokens[i] = _Token(r, _Unit.none); _display = _buildExpr(); _result = _fmt(r); });
-        return;
-      }
+    final v = _extractValue();
+    double r;
+    String u = '';
+    switch (t) {
+      case 'ft2m2':  r = v / 10.7639; u = 'm²';  break;
+      case 'm2ft2':  r = v * 10.7639; u = 'ft²'; break;
+      case 'in2ft2': r = v / 144;     u = 'ft²'; break;
+      case 'ft2in2': r = v * 144;     u = 'in²'; break;
+      case 'm2cm2':  r = v * 10000;   u = 'cm²'; break;
+      default:       r = v;
     }
+    setState(() {
+      _tokens.clear();
+      _tokens.add(_Token(r, _Unit.none));
+      _currentNum = '';
+      _result = '${_fmt(r)} $u'.trim();
+      _display = _result;
+      _newEntry = true;
+    });
   }
 
   void _convV(String t) {
     _commit();
-    for (int i = _tokens.length - 1; i >= 0; i--) {
-      if (!_tokens[i].isOp) {
-        final v = _tokens[i].value;
-        double r;
-        switch (t) {
-          case 'ft2m':    r = v * 0.0283168;  break;
-          case 'm2ft':    r = v * 35.3147;    break;
-          case 'in2ft':   r = v / 1728;       break;
-          case 'ft2brass':r = v / 100;        break;
-          case 'ft2ltr':  r = v * 28.3168;    break;
-          default:        r = v;
-        }
-        setState(() { _tokens[i] = _Token(r, _Unit.none); _display = _buildExpr(); _result = _fmt(r); });
-        return;
-      }
+    final v = _extractValue();
+    double r;
+    String u = '';
+    switch (t) {
+      case 'ft2m':     r = v * 0.0283168; u = 'm³';    break;
+      case 'm2ft':     r = v * 35.3147;   u = 'ft³';   break;
+      case 'in2ft':    r = v / 1728;      u = 'ft³';   break;
+      case 'ft2brass': r = v / 100;       u = 'brass'; break;
+      case 'ft2ltr':   r = v * 28.3168;   u = 'L';     break;
+      default:         r = v;
     }
+    setState(() {
+      _tokens.clear();
+      _tokens.add(_Token(r, _Unit.none));
+      _currentNum = '';
+      _result = '${_fmt(r)} $u'.trim();
+      _display = _result;
+      _newEntry = true;
+    });
   }
 
   // ── Build method and layout ───────────────────────────────────────────────
@@ -402,13 +435,6 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
                 HapticFeedback.selectionClick();
                 setState(() {
                   _tab = index;
-                  _result = '';
-                  if (_tokens.isNotEmpty || _currentNum.isNotEmpty) {
-                    final res = _evaluate();
-                    if (res != null) {
-                      _result = _formatResult(res);
-                    }
-                  }
                 });
               },
               child: AnimatedContainer(
@@ -654,7 +680,7 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
@@ -662,44 +688,17 @@ class _CivilCalcScreenState extends State<CivilCalcScreen>
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        }
-      },
+      activeScreen: HeroScreen.result,
+      onNavigate: _handleQuickNav,
     );
   }
 }

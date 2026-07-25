@@ -27,7 +27,8 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
+  remove_alpha_ios: true
   image_path: "assets/app_logo.jpeg"
   min_sdk_android: 21
 
@@ -51,3 +52,4 @@ flutter:
 
   assets:
     - assets/app_logo.jpeg
+    - assets/Herobg.jpeg

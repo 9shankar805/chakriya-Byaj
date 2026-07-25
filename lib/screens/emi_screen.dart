@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'history_screen.dart';
@@ -13,6 +14,8 @@ import 'currency_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 class EmiScreen extends StatefulWidget {
@@ -110,33 +113,47 @@ class _EmiScreenState extends State<EmiScreen>
     return Scaffold(
       backgroundColor: context.cBg,
       floatingActionButton: CivilCalcFab(languageCode: _languageCode),
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const ClampingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeroHeader()),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(delegate: SliverChildListDelegate([
-                  const SizedBox(height: 24),
-                  _buildInputSection(),
-                  const SizedBox(height: 28),
-                  if (_errorMsg.isNotEmpty) ...[ErrorBanner(message: _errorMsg), const SizedBox(height: 16)],
-                  ProButton(
-                    label: _isNepali ? 'EMI गणना गर्नुहोस्' : 'Calculate EMI',
-                    icon: Icons.calculate_rounded,
-                    gradient: AppTheme.primaryGradient,
-                    onPressed: _calculate,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SafeArea(
+            child: CustomScrollView(
+              physics: const ClampingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeroHeader()),
+                SliverToBoxAdapter(
+                  child: HeroCalculatorStrip(
+                    activeScreen: HeroScreen.emi,
+                    languageCode: _languageCode,
+                    onTap: _handleQuickNav,
                   ),
-                  if (_emi != null) ...[const SizedBox(height: 28), _buildResultSection()],
-                  const SizedBox(height: 24),
-                  _footer(),
-                  const SizedBox(height: 24),
-                ])),
-              ),
-            ],
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 24),
+                      _buildInputSection(),
+                      const SizedBox(height: 28),
+                      if (_errorMsg.isNotEmpty) ...[ErrorBanner(message: _errorMsg), const SizedBox(height: 16)],
+                      ProButton(
+                        label: _isNepali ? 'EMI गणना गर्नुहोस्' : 'Calculate EMI',
+                        icon: Icons.calculate_rounded,
+                        gradient: AppTheme.primaryGradient,
+                        onPressed: _calculate,
+                      ),
+                      if (_emi != null) ...[const SizedBox(height: 28), _buildResultSection()],
+                      const SizedBox(height: 24),
+                      _footer(),
+                      const SizedBox(height: 24),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -181,55 +198,24 @@ class _EmiScreenState extends State<EmiScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
       case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          // First pop the features sheet, then pop back to main, then push the new screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // Icons.account_balance_rounded = already here, do nothing
-      },
+      activeScreen: HeroScreen.emi,
+      onNavigate: _handleQuickNav,
     );
   }
 

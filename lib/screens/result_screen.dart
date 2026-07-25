@@ -6,6 +6,7 @@ import '../models/saved_record.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'history_screen.dart';
@@ -242,95 +243,129 @@ class _ResultScreenState extends State<ResultScreen>
 
   @override
   Widget build(BuildContext context) {
-    final m     = widget.model;
-    final dur   = m.byajChaleko;
-    final byaj  = m.jammaByaj;
+    final m = widget.model;
+    final dur = m.byajChaleko;
+    final byaj = m.jammaByaj;
     final total = m.totalAmount;
 
     return Scaffold(
       backgroundColor: context.cBg,
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SlideTransition(
-          position: _slideAnim,
-          child: SafeArea(
-            child: CustomScrollView(
-              physics: const ClampingScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(child: AppHeroHeader(
-                  languageCode: _languageCode,
-                  title: s.appTitle,
-                  activeScreen: HeroScreen.result,
-                  onLangToggle: _toggleLanguage,
-                  onBack: () => Navigator.pop(context),
-                  onGridTap: () => showFeaturesSheet(
-                    context: context,
-                    languageCode: _languageCode,
-                    onNavigate: (icon) {
-                      void push(Widget screen) => Navigator.push(context, PageRouteBuilder(
-                        transitionDuration: const Duration(milliseconds: 320),
-                        pageBuilder: (_, __, ___) => screen,
-                        transitionsBuilder: (_, anim, __, child) => FadeTransition(
-                            opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut), child: child),
-                      ));
-                      if (icon == Icons.calculate_rounded) {
-                        Navigator.pop(context);
-                      } else if (icon == Icons.history_rounded) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-                      } else if (icon == Icons.percent_rounded) {
-                        push(SimpleInterestScreen(languageCode: _languageCode));
-                      } else if (icon == Icons.account_balance_rounded) {
-                        push(EmiScreen(languageCode: _languageCode));
-                      } else if (icon == Icons.terrain_rounded) {
-                        push(LandScreen(languageCode: _languageCode));
-                      } else if (icon == Icons.currency_exchange_rounded) {
-                        push(CurrencyScreen(languageCode: _languageCode));
-                      } else if (icon == Icons.pie_chart_rounded) {
-                        push(ReportScreen(languageCode: _languageCode));
-                      } else if (icon == Icons.widgets_rounded) {
-                        push(WidgetSettingsScreen(languageCode: _languageCode));
-                      }
-                    },
-                  ),
-                  onQuickNav: (screen) {
-                    void push(Widget w) => Navigator.push(context, PageRouteBuilder(
-                      transitionDuration: const Duration(milliseconds: 320),
-                      pageBuilder: (_, __, ___) => w,
-                      transitionsBuilder: (_, a, __, child) => FadeTransition(
-                          opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-                    ));
-                    switch (screen) {
-                      case HeroScreen.compound: Navigator.pop(context); break;
-                      case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
-                      case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
-                      case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
-                      case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
-                      case HeroScreen.history:  Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
-                      case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
-                      case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
-                      default: break;
-                    }
-                  },
-                )),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(delegate: SliverChildListDelegate([
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: _slideAnim,
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppHeroHeader(
+                      languageCode: _languageCode,
+                      title: s.appTitle,
+                      activeScreen: HeroScreen.result,
+                      onLangToggle: _toggleLanguage,
+                      onBack: () => Navigator.pop(context),
+                      onGridTap: () => showAppDrawer(
+                        context: context,
+                        languageCode: _languageCode,
+                        activeScreen: HeroScreen.result,
+                        onNavigate: (screen) {
+                          void push(Widget w) => Navigator.push(context, PageRouteBuilder(
+                            transitionDuration: const Duration(milliseconds: 320),
+                            pageBuilder: (_, __, ___) => w,
+                            transitionsBuilder: (_, a, __, child) => FadeTransition(
+                              opacity: CurvedAnimation(parent: a, curve: Curves.easeOut),
+                              child: child,
+                            ),
+                          ));
+                          switch (screen) {
+                            case HeroScreen.compound: Navigator.pop(context); break;
+                            case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
+                            case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
+                            case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
+                            case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
+                            case HeroScreen.history:  Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
+                            case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
+                            default: break;
+                          }
+                        },
+                      ),
+                      onQuickNav: (screen) {
+                        void push(Widget w) => Navigator.push(context, PageRouteBuilder(
+                          transitionDuration: const Duration(milliseconds: 320),
+                          pageBuilder: (_, __, ___) => w,
+                          transitionsBuilder: (_, a, __, child) => FadeTransition(
+                            opacity: CurvedAnimation(parent: a, curve: Curves.easeOut),
+                            child: child,
+                          ),
+                        ));
+                        switch (screen) {
+                          case HeroScreen.compound:
+                            Navigator.pop(context);
+                            break;
+                          case HeroScreen.simple:
+                            push(SimpleInterestScreen(languageCode: _languageCode));
+                            break;
+                          case HeroScreen.emi:
+                            push(EmiScreen(languageCode: _languageCode));
+                            break;
+                          case HeroScreen.land:
+                            push(LandScreen(languageCode: _languageCode));
+                            break;
+                          case HeroScreen.currency:
+                            push(CurrencyScreen(languageCode: _languageCode));
+                            break;
+                          case HeroScreen.history:
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
+                            break;
+                          case HeroScreen.report:
+                            push(ReportScreen(languageCode: _languageCode));
+                            break;
+                          case HeroScreen.widget:
+                            push(WidgetSettingsScreen(languageCode: _languageCode));
+                            break;
+                          default:
+                            break;
+                        }
+                      },
+                    ),
                     const SizedBox(height: 24),
                     _sectionLabel(_isNepali ? 'विवरण' : 'Details'),
                     const SizedBox(height: 12),
                     ProCard(
                       padding: EdgeInsets.zero,
                       child: Column(children: [
-                        SummaryRow(icon: Icons.south_rounded, color: AppColors.cyan,
-                            label: s.liekoMitiResult,
-                            value: '${m.liekoSal}${s.salSuffix}${m.liekoMahina}${s.mahinaSuffix}${m.liekoGate}${s.gateSuffix}'),
-                        SummaryRow(icon: Icons.north_rounded, color: AppColors.indigo,
-                            label: s.bhujaauneMitiResult,
-                            value: '${m.bhujaauneSal}${s.salSuffix}${m.bhujaauneMahina}${s.mahinaSuffix}${m.bhujaaune_Gate}${s.gateSuffix}'),
-                        SummaryRow(icon: Icons.currency_rupee_rounded, color: AppColors.blue,
-                            label: s.mulDhanResult, value: 'रु ${_fmt(m.mulDhan)}'),
-                        SummaryRow(icon: Icons.percent_rounded, color: AppColors.amber,
-                            label: s.byajDarResult, value: '${m.byajDar}% ${_isNepali ? "/ महिना" : "/ month"}', isLast: true),
+                        SummaryRow(
+                          icon: Icons.south_rounded,
+                          color: AppColors.cyan,
+                          label: s.liekoMitiResult,
+                          value: '${m.liekoSal}${s.salSuffix}${m.liekoMahina}${s.mahinaSuffix}${m.liekoGate}${s.gateSuffix}',
+                        ),
+                        SummaryRow(
+                          icon: Icons.north_rounded,
+                          color: AppColors.indigo,
+                          label: s.bhujaauneMitiResult,
+                          value: '${m.bhujaauneSal}${s.salSuffix}${m.bhujaauneMahina}${s.mahinaSuffix}${m.bhujaaune_Gate}${s.gateSuffix}',
+                        ),
+                        SummaryRow(
+                          icon: Icons.currency_rupee_rounded,
+                          color: AppColors.blue,
+                          label: s.mulDhanResult,
+                          value: 'रु ${_fmt(m.mulDhan)}',
+                        ),
+                        SummaryRow(
+                          icon: Icons.percent_rounded,
+                          color: AppColors.amber,
+                          label: s.byajDarResult,
+                          value: '${m.byajDar}% ${_isNepali ? "/ महिना" : "/ month"}',
+                          isLast: true,
+                        ),
                       ]),
                     ),
                     const SizedBox(height: 24),
@@ -348,7 +383,7 @@ class _ResultScreenState extends State<ResultScreen>
                         accent: AppColors.indigo,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     AnimatedBuilder(
                       animation: _countAnim,
                       builder: (_, __) => HeroTotalCard(
@@ -365,8 +400,7 @@ class _ResultScreenState extends State<ResultScreen>
                         child: OutlinedButton.icon(
                           onPressed: () => Navigator.pop(context),
                           icon: const Icon(Icons.arrow_back_rounded, size: 18),
-                          label: Text(s.newCalc,
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                          label: Text(s.newCalc, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: context.cText2,
                             padding: const EdgeInsets.symmetric(vertical: 15),
@@ -376,27 +410,29 @@ class _ResultScreenState extends State<ResultScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(child: ElevatedButton.icon(
-                        onPressed: _saved ? null : _openSaveSheet,
-                        icon: Icon(_saved ? Icons.check_circle_rounded : Icons.save_rounded, size: 18),
-                        label: Text(
-                          _saved ? (_isNepali ? 'सुरक्षित' : 'Saved') : (_isNepali ? 'सुरक्षित गर्नुहोस्' : 'Save'),
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _saved ? null : _openSaveSheet,
+                          icon: Icon(_saved ? Icons.check_circle_rounded : Icons.save_rounded, size: 18),
+                          label: Text(
+                            _saved ? (_isNepali ? 'सुरक्षित' : 'Saved') : (_isNepali ? 'सुरक्षित गर्नुहोस्' : 'Save'),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _saved ? AppColors.green.withValues(alpha: 0.7) : AppColors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _saved ? AppColors.green.withValues(alpha: 0.7) : AppColors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 15), elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        ),
-                      )),
+                      ),
                     ]),
                     const SizedBox(height: 24),
                     _footer(context),
-                    const SizedBox(height: 24),
-                  ])),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import 'history_screen.dart';
 import 'simple_interest_screen.dart';
@@ -13,6 +14,8 @@ import 'land_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 class CurrencyScreen extends StatefulWidget {
@@ -163,41 +166,48 @@ class _CurrencyScreenState extends State<CurrencyScreen>
     return Scaffold(
       backgroundColor: context.cBg,
       floatingActionButton: CivilCalcFab(languageCode: _languageCode),
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const ClampingScrollPhysics(),
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeroHeader()),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverList(delegate: SliverChildListDelegate([
-                  const SizedBox(height: 24),
-                  _rateStatusBar(),
-                  const SizedBox(height: 24),
-                  _label(_isNepali ? 'कुन मुद्राबाट' : 'From Currency', AppColors.blue),
-                  const SizedBox(height: 10),
-                  _currencySelector(_fromCode, (v) => setState(() { _fromCode = v; _result = null; })),
-                  const SizedBox(height: 20),
-                  _label(_isNepali ? 'रकम' : 'Amount', AppColors.amber),
-                  const SizedBox(height: 10),
-                  _amountField(),
-                  const SizedBox(height: 20),
-                  Center(child: _swapButton()),
-                  const SizedBox(height: 20),
-                  _label(_isNepali ? 'कुन मुद्रामा' : 'To Currency', AppColors.indigo),
-                  const SizedBox(height: 10),
-                  _currencySelector(_toCode, (v) => setState(() { _toCode = v; _result = null; })),
-                  const SizedBox(height: 28),
-                  if (_errorMsg.isNotEmpty) ...[_errorBanner(), const SizedBox(height: 16)],
-                  _convertButton(),
-                  if (_result != null) ...[const SizedBox(height: 24), _resultCard()],
-                  if (_fetched && _rates.isNotEmpty) ...[const SizedBox(height: 24), _quickRates()],
-                  const SizedBox(height: 32),
-                ])),
-              ),
-            ],
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SafeArea(
+            child: CustomScrollView(
+              physics: const ClampingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeroHeader()),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 24),
+                      _rateStatusBar(),
+                      const SizedBox(height: 24),
+                      _label(_isNepali ? 'कुन मुद्राबाट' : 'From Currency', AppColors.blue),
+                      const SizedBox(height: 10),
+                      _currencySelector(_fromCode, (v) => setState(() { _fromCode = v; _result = null; })),
+                      const SizedBox(height: 20),
+                      _label(_isNepali ? 'रकम' : 'Amount', AppColors.amber),
+                      const SizedBox(height: 10),
+                      _amountField(),
+                      const SizedBox(height: 20),
+                      Center(child: _swapButton()),
+                      const SizedBox(height: 20),
+                      _label(_isNepali ? 'कुन मुद्रामा' : 'To Currency', AppColors.indigo),
+                      const SizedBox(height: 10),
+                      _currencySelector(_toCode, (v) => setState(() { _toCode = v; _result = null; })),
+                      const SizedBox(height: 28),
+                      if (_errorMsg.isNotEmpty) ...[_errorBanner(), const SizedBox(height: 16)],
+                      _convertButton(),
+                      if (_result != null) ...[const SizedBox(height: 24), _resultCard()],
+                      if (_fetched && _rates.isNotEmpty) ...[const SizedBox(height: 24), _quickRates()],
+                      const SizedBox(height: 32),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -244,55 +254,24 @@ class _CurrencyScreenState extends State<CurrencyScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          // First pop the features sheet, then pop back to main, then push the new screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // Icons.currency_exchange_rounded = already here, do nothing
-      },
+      activeScreen: HeroScreen.currency,
+      onNavigate: _handleQuickNav,
     );
   }
 
