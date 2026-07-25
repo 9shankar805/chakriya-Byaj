@@ -1,0 +1,53 @@
+name: chakriya_byaj
+description: "चक्रिय ब्याज निकाल्नुहोस - Compound Interest Calculator"
+publish_to: 'none'
+
+version: 1.0.1+2
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  provider: ^6.1.2
+  shared_preferences: ^2.5.5
+  flutter_speed_dial: ^7.0.0
+  http: ^1.2.2
+  flutter_local_notifications: ^18.0.1
+  home_widget: ^0.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.3
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/app_logo.jpeg"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#1D4ED8"
+  color_dark: "#0B1120"
+  image: assets/app_logo.jpeg
+  image_dark: assets/app_logo.jpeg
+  
+  android: true
+  ios: false
+  
+  android_12:
+    image: assets/app_logo.jpeg
+    image_dark: assets/app_logo.jpeg
+    icon_background_color: "#1D4ED8"
+    icon_background_color_dark: "#0B1120"
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/app_logo.jpeg

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp"
+    android:gravity="center">
+
+    <!-- BS Date number (big) -->
+    <TextView
+        android:id="@+id/widget_bs_day"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="१"
+        android:textColor="#FFFFFF"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black" />
+
+    <!-- Month + Year -->
+    <TextView
+        android:id="@+id/widget_bs_month_year"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="बैशाख २०८२"
+        android:textColor="#FFFFFFCC"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginTop="2dp" />
+
+    <!-- Weekday -->
+    <TextView
+        android:id="@+id/widget_bs_weekday"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="आइतबार"
+        android:textColor="#FFFFFF99"
+        android:textSize="11sp"
+        android:layout_marginTop="2dp" />
+
+    <!-- Divider line -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="1dp"
+        android:background="#FFFFFF44"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="6dp" />
+
+    <!-- AD Date -->
+    <TextView
+        android:id="@+id/widget_ad_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Apr 14, 2025 AD"
+        android:textColor="#FFFFFF88"
+        android:textSize="10sp" />
+
+</LinearLayout>

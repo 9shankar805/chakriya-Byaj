@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">चक्रिय ब्याज</string>
+    <string name="widget_description">Nepali (BS) date widget showing today\'s Bikram Sambat date</string>
+</resources>
