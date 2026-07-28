@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/civil_calc_fab.dart';
 import 'simple_interest_screen.dart';
@@ -12,6 +13,7 @@ import 'history_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'input_screen.dart';
 
 // ── Calculation mode ────────────────────────────────────────────────────────
 enum _PLMode { costSell, percentProfit, percentLoss, markup }
@@ -164,6 +166,11 @@ class _ProfitLossScreenState extends State<ProfitLossScreen>
         child: SafeArea(
           child: Column(children: [
             _buildHeader(),
+            HeroCalculatorStrip(
+              activeScreen: HeroScreen.other,
+              languageCode: _languageCode,
+              onTap: _handleQuickNav,
+            ),
             Expanded(
               child: SingleChildScrollView(
                 controller: _scrollCtrl,
@@ -222,41 +229,11 @@ class _ProfitLossScreenState extends State<ProfitLossScreen>
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context); Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context); Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-      },
+      activeScreen: HeroScreen.other,
+      onNavigate: _handleQuickNav,
     );
   }
 
@@ -271,7 +248,7 @@ class _ProfitLossScreenState extends State<ProfitLossScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;

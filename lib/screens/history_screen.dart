@@ -4,6 +4,7 @@ import '../models/saved_record.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'simple_interest_screen.dart';
@@ -13,6 +14,8 @@ import 'currency_screen.dart';
 import 'report_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -155,29 +158,41 @@ class _HistoryScreenState extends State<HistoryScreen>
     return Scaffold(
       backgroundColor: context.cBg,
       floatingActionButton: CivilCalcFab(languageCode: _languageCode),
-      body: SafeArea(
-        child: FadeTransition(
-          opacity: _fadeAnim,
-          child: Column(children: [
-            _buildHeroHeader(),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2))
-                  : _records.isEmpty
-                      ? _emptyState()
-                      : RefreshIndicator(
-                          onRefresh: _load,
-                          color: AppColors.blue,
-                          child: ListView.separated(
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-                            itemCount: _records.length,
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
-                            itemBuilder: (_, i) => _recordCard(_records[i]),
-                          ),
-                        ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: Column(
+              children: [
+                _buildHeroHeader(),
+                HeroCalculatorStrip(
+                  activeScreen: HeroScreen.history,
+                  languageCode: _languageCode,
+                  onTap: _handleQuickNav,
+                ),
+                Expanded(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2))
+                      : _records.isEmpty
+                          ? _emptyState()
+                          : RefreshIndicator(
+                              onRefresh: _load,
+                              color: AppColors.blue,
+                              child: ListView.separated(
+                                physics: const BouncingScrollPhysics(),
+                                padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+                                itemCount: _records.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: (_, i) => _recordCard(_records[i]),
+                              ),
+                            ),
+                ),
+              ],
             ),
-          ]),
+          ),
         ),
       ),
     );
@@ -227,35 +242,11 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget screen) => Navigator.push(context, PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 320),
-          pageBuilder: (_, __, ___) => screen,
-          transitionsBuilder: (_, anim, __, child) => FadeTransition(
-              opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut), child: child),
-        ));
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.pie_chart_rounded) {
-          push(ReportScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // history = already here
-      },
+      activeScreen: HeroScreen.history,
+      onNavigate: _handleQuickNav,
     );
   }
 
@@ -267,13 +258,14 @@ class _HistoryScreenState extends State<HistoryScreen>
           FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
     ));
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
       case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
       case HeroScreen.report:   push(ReportScreen(languageCode: _languageCode)); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }

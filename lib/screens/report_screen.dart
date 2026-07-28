@@ -4,6 +4,7 @@ import '../models/saved_record.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_hero_header.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/features_sheet.dart';
 import '../widgets/pro_widgets.dart';
 import 'history_screen.dart';
@@ -13,6 +14,8 @@ import 'land_screen.dart';
 import 'currency_screen.dart';
 import 'widget_settings_screen.dart';
 import 'civil_calc_screen.dart';
+import 'profit_loss_screen.dart';
+import 'input_screen.dart';
 import '../widgets/civil_calc_fab.dart';
 
 class ReportScreen extends StatefulWidget {
@@ -84,43 +87,50 @@ class _ReportScreenState extends State<ReportScreen>
     return Scaffold(
       backgroundColor: context.cBg,
       floatingActionButton: CivilCalcFab(languageCode: _languageCode),
-      body: FadeTransition(
-        opacity: _fadeAnim,
-        child: SafeArea(
-          child: Column(children: [
-            _buildHeroHeader(),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2))
-                  : _records.isEmpty
-                      ? _emptyState()
-                      : RefreshIndicator(
-                          onRefresh: _load,
-                          color: AppColors.blue,
-                          child: ListView(
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                            children: [
-                              _sectionLabel(_isNepali ? 'सारांश' : 'Summary'),
-                              const SizedBox(height: 12),
-                              _summarySection(),
-                              const SizedBox(height: 24),
-                              _sectionLabel(_isNepali ? 'विश्लेषण' : 'Analysis'),
-                              const SizedBox(height: 12),
-                              _analysisCard(),
-                              const SizedBox(height: 24),
-                              _sectionLabel(_isNepali ? 'ऋणीहरूको तुलना' : 'Borrower Comparison'),
-                              const SizedBox(height: 12),
-                              _borrowerBars(),
-                              const SizedBox(height: 24),
-                              _sectionLabel(_isNepali ? 'उल्लेखनीय' : 'Highlights'),
-                              const SizedBox(height: 12),
-                              _highlights(),
-                            ],
-                          ),
-                        ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: context.isDark ? AppTheme.pageGradientDark : AppTheme.pageGradientLight,
+        ),
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeroHeader(),
+                Expanded(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.blue, strokeWidth: 2))
+                      : _records.isEmpty
+                          ? _emptyState()
+                          : RefreshIndicator(
+                              onRefresh: _load,
+                              color: AppColors.blue,
+                              child: ListView(
+                                physics: const BouncingScrollPhysics(),
+                                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                                children: [
+                                  _sectionLabel(_isNepali ? 'सारांश' : 'Summary'),
+                                  const SizedBox(height: 12),
+                                  _summarySection(),
+                                  const SizedBox(height: 24),
+                                  _sectionLabel(_isNepali ? 'विश्लेषण' : 'Analysis'),
+                                  const SizedBox(height: 12),
+                                  _analysisCard(),
+                                  const SizedBox(height: 24),
+                                  _sectionLabel(_isNepali ? 'ऋणीहरूको तुलना' : 'Borrower Comparison'),
+                                  const SizedBox(height: 12),
+                                  _borrowerBars(),
+                                  const SizedBox(height: 24),
+                                  _sectionLabel(_isNepali ? 'उल्लेखनीय' : 'Highlights'),
+                                  const SizedBox(height: 12),
+                                  _highlights(),
+                                ],
+                              ),
+                            ),
+                ),
+              ],
             ),
-          ]),
+          ),
         ),
       ),
     );
@@ -164,55 +174,24 @@ class _ReportScreenState extends State<ReportScreen>
       ));
     }
     switch (screen) {
-      case HeroScreen.compound: Navigator.pop(context); break;
+      case HeroScreen.compound: push(const InputScreen()); break;
       case HeroScreen.simple:   push(SimpleInterestScreen(languageCode: _languageCode)); break;
       case HeroScreen.emi:      push(EmiScreen(languageCode: _languageCode)); break;
       case HeroScreen.land:     push(LandScreen(languageCode: _languageCode)); break;
       case HeroScreen.currency: push(CurrencyScreen(languageCode: _languageCode)); break;
       case HeroScreen.history:  Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode))); break;
       case HeroScreen.widget:   push(WidgetSettingsScreen(languageCode: _languageCode)); break;
+      case HeroScreen.other:    push(ProfitLossScreen(languageCode: _languageCode)); break;
       default: break;
     }
   }
 
   void _showAppGrid() {
-    showFeaturesSheet(
+    showAppDrawer(
       context: context,
       languageCode: _languageCode,
-      onNavigate: (icon) {
-        void push(Widget w) {
-          // First pop the features sheet, then pop back to main, then push the new screen
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 320),
-            pageBuilder: (_, __, ___) => w,
-            transitionsBuilder: (_, a, __, child) =>
-                FadeTransition(opacity: CurvedAnimation(parent: a, curve: Curves.easeOut), child: child),
-          ));
-        }
-        if (icon == Icons.calculate_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-        } else if (icon == Icons.history_rounded) {
-          Navigator.pop(context);
-          Navigator.pop(context);
-          Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen(languageCode: _languageCode)));
-        } else if (icon == Icons.percent_rounded) {
-          push(SimpleInterestScreen(languageCode: _languageCode));
-        } else if (icon == Icons.account_balance_rounded) {
-          push(EmiScreen(languageCode: _languageCode));
-        } else if (icon == Icons.terrain_rounded) {
-          push(LandScreen(languageCode: _languageCode));
-        } else if (icon == Icons.currency_exchange_rounded) {
-          push(CurrencyScreen(languageCode: _languageCode));
-        } else if (icon == Icons.widgets_rounded) {
-          push(WidgetSettingsScreen(languageCode: _languageCode));
-        } else if (icon == Icons.construction_rounded) {
-          push(CivilCalcScreen(languageCode: _languageCode));
-        }
-        // pie_chart = already here
-      },
+      activeScreen: HeroScreen.report,
+      onNavigate: _handleQuickNav,
     );
   }
 

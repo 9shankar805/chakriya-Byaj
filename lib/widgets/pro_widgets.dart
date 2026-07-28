@@ -44,7 +44,14 @@ class ProCard extends StatelessWidget {
           color: borderColor ?? context.cBorder,
           width: borderWidth,
         ),
-        boxShadow: shadows ?? context.cardShadow,
+        boxShadow: shadows ?? [
+          ...context.cardShadow,
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: child,
     );
