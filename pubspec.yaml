@@ -2,7 +2,7 @@ name: chakriya_byaj
 description: "चक्रिय ब्याज निकाल्नुहोस - Compound Interest Calculator"
 publish_to: 'none'
 
-version: 1.0.1+2
+version: 1.0.4+5
 
 environment:
   sdk: ^3.10.4
@@ -17,6 +17,7 @@ dependencies:
   http: ^1.2.2
   flutter_local_notifications: ^18.0.1
   home_widget: ^0.6.0
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:

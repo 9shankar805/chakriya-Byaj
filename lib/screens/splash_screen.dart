@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'input_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -39,6 +40,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _animationController.forward();
 
+    // Check for in-app updates
+    checkForUpdate();
+  }
+
+  Future<void> checkForUpdate() async {
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        // Force immediate update
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      // If update check fails, continue to app
+      print('In-app update check failed: $e');
+    }
+
+    // Navigate to main screen after update check
     Timer(const Duration(milliseconds: 2500), () {
       if (mounted) {
         Navigator.pushReplacement(
